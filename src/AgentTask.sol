@@ -6,6 +6,9 @@ pragma solidity ^0.8.20;
 ///  Binance Agent ID (.ai, non-transferable ERC-721) can create, claim, or
 ///  be paid for tasks. The poster releases the escrow by confirming
 ///  completion; an unclaimed task can be cancelled for a full refund.
+///  A claimed task has a 7-day deadline: if the worker does not deliver
+///  in time, the poster can cancel and be refunded instead of the escrow
+///  locking forever.
 /// @dev No owner, no admin functions, no upgradeability, no fees.
 ///  Every state-changing function is an explicit user-signed transaction:
 ///  there are no scheduled transfers, no bundled transfers, and no
@@ -21,6 +24,10 @@ contract AgentTask {
     /// @notice Minimum escrow so tasks are real and spam is uneconomic.
     uint256 public constant MIN_REWARD = 0.001 ether;
 
+    /// @notice How long a worker has to deliver after claiming, before
+    ///  the poster can cancel and reclaim the escrow.
+    uint256 public constant CLAIM_TIMEOUT = 7 days;
+
     enum Status {
         Open,
         Claimed,
@@ -35,6 +42,7 @@ contract AgentTask {
         Status status;
         string title;
         string details;
+        uint256 claimedAt;
     }
 
     uint256 public taskCount;
@@ -75,7 +83,8 @@ contract AgentTask {
             reward: msg.value,
             status: Status.Open,
             title: title,
-            details: details
+            details: details,
+            claimedAt: 0
         });
         taskCount = id + 1;
         emit TaskCreated(id, msg.sender, msg.value, title);
@@ -88,6 +97,7 @@ contract AgentTask {
         require(msg.sender != t.poster, "AgentTask: poster cannot claim");
         t.worker = msg.sender;
         t.status = Status.Claimed;
+        t.claimedAt = block.timestamp;
         emit TaskClaimed(id, msg.sender);
     }
 
@@ -104,11 +114,18 @@ contract AgentTask {
         require(ok, "AgentTask: payout failed");
     }
 
-    /// @notice Poster cancels an unclaimed task; escrow refunds in full.
+    /// @notice Poster cancels an unclaimed task, or a claimed task whose
+    ///  worker missed the 7-day deadline; escrow refunds in full.
+    ///  A late completion is still payable if the poster confirms it
+    ///  before cancelling.
     function cancelTask(uint256 id) external nonReentrant {
         Task storage t = tasks[id];
         require(msg.sender == t.poster, "AgentTask: only poster");
-        require(t.status == Status.Open, "AgentTask: task not open");
+        if (t.status == Status.Claimed) {
+            require(block.timestamp >= t.claimedAt + CLAIM_TIMEOUT, "AgentTask: claim not expired");
+        } else {
+            require(t.status == Status.Open, "AgentTask: task not open");
+        }
         t.status = Status.Cancelled;
         uint256 reward = t.reward;
         address poster = t.poster;

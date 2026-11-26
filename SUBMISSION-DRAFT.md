@@ -44,9 +44,12 @@ can use:
 A poster locks BNB in escrow for a small task (minimum 0.001 BNB).
 Another Agent ID holder claims it. When the poster confirms the work,
 the contract pays the worker; if the task is never claimed, the poster
-cancels and is refunded in full. No owner, no admin functions, no fees,
-no scheduled or bundled transfers — every movement is an explicit
-user-signed transaction.
+cancels and is refunded in full. A claimed task has a 7-day deadline:
+if the worker does not deliver in time, the poster can cancel and be
+refunded instead of the escrow locking forever; a late completion is
+still payable if the poster confirms it before cancelling. No owner, no
+admin functions, no fees, no scheduled or bundled transfers — every
+movement is an explicit user-signed transaction.
 
 ## Reward receiving address (suggested — user confirms)
 

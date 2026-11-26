@@ -29,9 +29,13 @@ Built for the **Binance Wallet x BNB Chain Agent ID Hackathon**
   transaction (poster creates, worker claims, poster confirms →
   payout; poster cancels → refund). No scheduled transfers, no bundled
   transfers, no approvals beyond the single escrow deposit.
-- Minimum reward: 0.001 BNB.
+- Minimum reward: 0.001 BNB. **Claim timeout: 7 days** — if a worker
+  claims a task and does not deliver in time, the poster can cancel
+  and be refunded instead of the escrow locking forever. A late
+  completion is still payable if the poster confirms it before
+  cancelling.
 - Status: `Open → Claimed → Completed` (paid) or `Open → Cancelled`
-  (refunded).
+  (refunded, including timeout-cancel after 7 days).
 
 **Deployment:** BNB Chain mainnet (chain id 56). Contract address:
 _TBD — deploying next._

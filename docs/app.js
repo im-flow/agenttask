@@ -8,11 +8,13 @@ var AGENT_ID_ADDRESS = "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F";
 var BSC_CHAIN_ID = 56;
 var BSC_RPC = "https://bsc-dataseed1.bnbchain.org";
 var BSCSCAN = "https://bscscan.com/address/";
+// Must match CLAIM_TIMEOUT in AgentTask.sol (7 days).
+var CLAIM_TIMEOUT_SECONDS = 7 * 24 * 3600;
 
 var AGENT_ID_ABI = ["function balanceOf(address owner) view returns (uint256)"];
 var TASK_ABI = [
   "function taskCount() view returns (uint256)",
-  "function getTask(uint256 id) view returns (tuple(address poster, address worker, uint256 reward, uint8 status, string title, string details))",
+  "function getTask(uint256 id) view returns (tuple(address poster, address worker, uint256 reward, uint8 status, string title, string details, uint256 claimedAt))",
   "function createTask(string title, string details) payable returns (uint256)",
   "function claimTask(uint256 id)",
   "function completeTask(uint256 id)",
@@ -104,7 +106,8 @@ function taskCard(t, id) {
   var meta = document.createElement("div");
   meta.className = "meta";
   meta.textContent = "Reward: " + ethers.formatEther(t.reward) + " BNB · Poster: " + short(t.poster) +
-    (t.worker !== "0x0000000000000000000000000000000000000000" ? " · Worker: " + short(t.worker) : "");
+    (t.worker !== "0x0000000000000000000000000000000000000000" ? " · Worker: " + short(t.worker) : "") +
+    (t.status === 1 && t.claimedAt ? " · Complete by " + new Date((t.claimedAt + CLAIM_TIMEOUT_SECONDS) * 1000).toLocaleDateString() : "");
   var details = document.createElement("div");
   details.textContent = t.details;
   div.appendChild(head);
@@ -125,6 +128,15 @@ function taskCard(t, id) {
       done.className = "primary";
       done.onclick = function () { sendTx("completeTask", [id], "Task #" + id + " completed — worker paid."); };
       div.appendChild(done);
+    }
+    if (t.status === 1 && t.poster.toLowerCase() === mine) {
+      var cancelClaimed = document.createElement("button");
+      var deadline = new Date((t.claimedAt + CLAIM_TIMEOUT_SECONDS) * 1000);
+      var expired = Date.now() >= deadline.getTime();
+      cancelClaimed.textContent = expired ? "Cancel (worker timed out) & refund" : "Cancel & refund after " + deadline.toLocaleDateString();
+      cancelClaimed.disabled = !expired;
+      cancelClaimed.onclick = function () { sendTx("cancelTask", [id], "Task #" + id + " cancelled — refunded."); };
+      div.appendChild(cancelClaimed);
     }
     if (t.status === 0 && t.poster.toLowerCase() === mine) {
       var cancel = document.createElement("button");
@@ -160,7 +172,7 @@ async function loadTasks() {
     var start = Math.max(0, count - 50);
     for (var id = count - 1; id >= start; id--) {
       var t = await c.getTask(id);
-      box.appendChild(taskCard({ poster: t[0], worker: t[1], reward: t[2], status: Number(t[3]), title: t[4], details: t[5] }, id));
+      box.appendChild(taskCard({ poster: t[0], worker: t[1], reward: t[2], status: Number(t[3]), title: t[4], details: t[5], claimedAt: Number(t[6]) }, id));
     }
   } catch (e) {
     box.innerHTML = "";

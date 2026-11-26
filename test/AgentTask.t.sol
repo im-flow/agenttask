@@ -128,7 +128,7 @@ contract AgentTaskTest is Test {
         vm.prank(worker);
         task.claimTask(0);
         vm.prank(poster);
-        vm.expectRevert("AgentTask: task not open");
+        vm.expectRevert("AgentTask: claim not expired");
         task.cancelTask(0);
     }
 
@@ -137,5 +137,48 @@ contract AgentTaskTest is Test {
         vm.prank(worker);
         vm.expectRevert("AgentTask: only poster");
         task.cancelTask(0);
+    }
+
+    function testClaimSetsClaimedAt() public {
+        _createTask();
+        vm.prank(worker);
+        task.claimTask(0);
+        assertEq(task.getTask(0).claimedAt, block.timestamp);
+        assertEq(task.CLAIM_TIMEOUT(), 7 days);
+    }
+
+    function testCancelClaimedBeforeTimeoutReverts() public {
+        _createTask();
+        vm.prank(worker);
+        task.claimTask(0);
+        vm.warp(block.timestamp + task.CLAIM_TIMEOUT() - 1);
+        vm.prank(poster);
+        vm.expectRevert("AgentTask: claim not expired");
+        task.cancelTask(0);
+    }
+
+    function testCancelClaimedAfterTimeoutRefunds() public {
+        _createTask();
+        vm.prank(worker);
+        task.claimTask(0);
+        vm.warp(block.timestamp + task.CLAIM_TIMEOUT() + 1);
+        uint256 before_ = poster.balance;
+        vm.prank(poster);
+        task.cancelTask(0);
+        assertEq(poster.balance, before_ + 0.05 ether);
+        assertEq(address(task).balance, 0);
+        assertEq(uint8(task.getTask(0).status), uint8(AgentTask.Status.Cancelled));
+    }
+
+    function testCompleteAfterTimeoutStillPays() public {
+        _createTask();
+        vm.prank(worker);
+        task.claimTask(0);
+        vm.warp(block.timestamp + task.CLAIM_TIMEOUT() + 1);
+        uint256 before_ = worker.balance;
+        vm.prank(poster);
+        task.completeTask(0);
+        assertEq(worker.balance, before_ + 0.05 ether);
+        assertEq(uint8(task.getTask(0).status), uint8(AgentTask.Status.Completed));
     }
 }

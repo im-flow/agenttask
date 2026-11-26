@@ -51,11 +51,11 @@ forge script script/Deploy.s.sol --rpc-url https://bsc-dataseed1.bnbchain.org --
 ```
 
 Then verify the source on BscScan and put the address in
-`site/app.js` (`CONTRACT_ADDRESS`).
+`docs/app.js` (`CONTRACT_ADDRESS`).
 
 ## Website
 
-`site/` is a static page (GitHub Pages). It connects to the user's own
+`docs/` is a static page (GitHub Pages). It connects to the user's own
 injected wallet (MetaMask / Binance Wallet extension) — no QR login,
 no session storage, no keys ever touch the page.
 

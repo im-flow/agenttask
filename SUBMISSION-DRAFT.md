@@ -25,7 +25,7 @@ https://github.com/im-flow/agenttask
 - Block: 135881655 · Deployer: `0x7477709e5ec51a1B49bab2777AF7F668aB016703` (MetaMask) · Fee: 0.0000959 BNB (1,918,624 gas @ 0.05 gwei)
 - BscScan: https://bscscan.com/address/0x2bc746b33fd36051d7a14725d83873a2e3ad5e12
 - Verified on-chain: code 8,628 bytes; `agentId()` = `0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F`; `CLAIM_TIMEOUT()` = 604800 (7 days); `MIN_REWARD()` = 0.001 BNB; `taskCount()` = 0.
-- Source verification on BscScan: pending check (Remix reported "Checking explorers for registration...").
+- Source verification on BscScan: VERIFIED 26 Nov 23:55 WIB — "Exact Match", compiler v0.8.34+commit.80d5c536, optimization No with 200 runs, contract name AgentTask, constructor arg agentId_ = official contract.
 
 ## Agent ID usage description
 
@@ -63,7 +63,7 @@ Agent ID xflow.ai)
 ## Status checklist (before submitting)
 
 - [x] Contract deployed on BNB Chain mainnet
-- [ ] Source verified + open on BscScan
+- [x] Source verified + open on BscScan
 - [x] `CONTRACT_ADDRESS` filled in `docs/app.js`, site re-checked live
 - [ ] At least 30 distinct Agent ID addresses interacted with the contract
 - [x] This draft's TBD fields filled in

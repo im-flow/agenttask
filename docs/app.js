@@ -3,7 +3,7 @@
 // user's own wallet as explicit signed transactions.
 "use strict";
 
-var CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000"; // TODO: fill after mainnet deploy
+var CONTRACT_ADDRESS = "0x2bc746b33fd36051d7a14725d83873a2e3ad5e12"; // deployed 26 Nov 2026 23:51 WIB, BNB Chain mainnet
 var AGENT_ID_ADDRESS = "0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F";
 var BSC_CHAIN_ID = 56;
 var BSC_RPC = "https://bsc-dataseed1.bnbchain.org";

@@ -27,10 +27,19 @@ var userAddress = null;
 
 function $(id) { return document.getElementById(id); }
 function short(addr) { return addr ? addr.slice(0, 6) + "…" + addr.slice(-4) : ""; }
-function setStatus(msg, isError) {
+function setStatus(msg, isError, txHash) {
   var el = $("status");
   el.textContent = msg || "";
   el.style.color = isError ? "#a33" : "";
+  if (txHash) {
+    var a = document.createElement("a");
+    a.href = "https://bscscan.com/tx/" + txHash;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "Lihat di BscScan";
+    el.appendChild(document.createTextNode(" "));
+    el.appendChild(a);
+  }
 }
 
 function escrowDeployed() {
@@ -168,9 +177,9 @@ async function sendTx(method, args, okMsg) {
     setStatus("Waiting for your signature in the wallet…");
     var c = new ethers.Contract(CONTRACT_ADDRESS, TASK_ABI, signer);
     var tx = await c[method](...args);
-    setStatus("Transaction sent: " + tx.hash + " — waiting for confirmation…");
+    setStatus("Transaction sent — waiting for confirmation…", false, tx.hash);
     await tx.wait();
-    setStatus(okMsg + " Tx: " + tx.hash);
+    setStatus(okMsg, false, tx.hash);
     await loadTasks();
   } catch (e) {
     setStatus("Transaction failed: " + (e && e.reason ? e.reason : (e && e.message ? e.message : e)), true);
@@ -189,9 +198,9 @@ async function createTask() {
     setStatus("Waiting for your signature in the wallet…");
     var c = new ethers.Contract(CONTRACT_ADDRESS, TASK_ABI, signer);
     var tx = await c.createTask(title, details, { value: ethers.parseEther(reward) });
-    setStatus("Transaction sent: " + tx.hash + " — waiting for confirmation…");
+    setStatus("Transaction sent — waiting for confirmation…", false, tx.hash);
     await tx.wait();
-    setStatus("Task posted — " + reward + " BNB locked in escrow. Tx: " + tx.hash);
+    setStatus("Task posted — " + reward + " BNB locked in escrow.", false, tx.hash);
     $("title").value = ""; $("details").value = ""; $("reward").value = "";
     await loadTasks();
   } catch (e) {

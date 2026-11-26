@@ -18,9 +18,10 @@ https://github.com/im-flow/agenttask
 
 ## Contract address (BNB Chain mainnet, chain id 56)
 
-**TBD — deploy pending.** (User must reconnect the Agentic Wallet and
-top up a little BNB for gas first. After deploy, verify source on
-BscScan and fill the address here + in `docs/app.js`.)
+**TBD — deploy pending.** (Agentic Wallet reconnected 26 Nov 23:27 WIB;
+deploy gas ~0.00007 BNB is covered by the 0.000525 BNB balance, no top-up
+needed. Deploy via Remix + MetaMask — baw cannot deploy contracts. After
+deploy, verify source on BscScan and fill the address here + in `docs/app.js`.)
 
 ## Agent ID usage description
 
